@@ -1,0 +1,246 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>老六地图 · 10单元50关</title>
+<style>
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#86d4ff;font-family:Arial,"Microsoft YaHei",sans-serif}
+canvas{display:block;width:100%;height:100%}
+#hud{position:fixed;left:14px;top:12px;color:#fff;font-weight:900;font-size:18px;text-shadow:0 2px 5px #000;z-index:3}
+#help{position:fixed;right:14px;top:12px;background:#0009;color:#fff;padding:8px 12px;border-radius:10px;z-index:3}
+#credits{position:fixed;right:14px;top:58px;background:#0009;color:#fff;padding:8px 12px;border-radius:10px;z-index:3;font-size:13px;line-height:1.7;text-align:right}
+#credits a{color:#7dd3fc;text-decoration:none}
+#credits a:hover{text-decoration:underline}
+#credits .reset{color:#fca5a5;cursor:pointer}
+#toast{position:fixed;left:50%;top:45%;transform:translate(-50%,-50%);font-size:clamp(26px,5vw,62px);font-weight:900;color:#fff;text-shadow:0 4px 0 #8b0000,0 0 22px #f00;opacity:0;pointer-events:none;z-index:5;white-space:nowrap}
+#toast.show{animation:toast .9s ease-out}
+#next{position:fixed;left:50%;top:22%;transform:translate(-50%,-50%);font-size:clamp(22px,4vw,50px);font-weight:900;color:#fff;text-shadow:0 4px 0 #234c85;opacity:0;z-index:6;pointer-events:none;white-space:nowrap}
+#next.show{animation:next .8s ease-out}
+#win{display:none;position:fixed;inset:0;place-items:center;background:#000b;z-index:10;color:#fff}
+.box{background:#18222e;padding:30px 38px;border-radius:18px;text-align:center;box-shadow:0 20px 70px #0008}
+button{border:0;border-radius:10px;padding:11px 20px;font-size:18px;cursor:pointer}
+@keyframes toast{0%{opacity:0;transform:translate(-50%,-50%) scale(.6) rotate(-5deg)}20%{opacity:1;transform:translate(-50%,-50%) scale(1.12) rotate(4deg)}70%{opacity:1}100%{opacity:0;transform:translate(-50%,-50%) scale(1.15)}}
+@keyframes next{0%{opacity:0;transform:translate(-50%,-50%) scale(.7)}25%{opacity:1;transform:translate(-50%,-50%) scale(1.08)}75%{opacity:1}100%{opacity:0;transform:translate(-50%,-50%) scale(1.12)}}
+@media(max-width:520px){#credits{font-size:11px;padding:6px 10px;top:54px}#help{font-size:13px;padding:6px 10px}}
+</style>
+<!-- 全站统一组件：样式 -->
+<link rel="stylesheet" href="https://game.leleleling.site/common.css">
+<!-- 强制标记为游戏页，让公告弹窗 15 秒自动消失 -->
+<script>
+  window.forceGamePage = true;
+</script>
+</head>
+<body>
+<canvas id="game"></canvas>
+<div id="hud"><span id="levelName"></span>　|　死亡：<span id="deaths">0</span></div>
+<div id="help">A/D 或 ←/→ 移动　W/↑/空格 二段跳</div>
+<div id="credits">
+  <div>💾 存档由 <a href="https://game.leleleling.site" target="_blank" rel="noopener">了了了游</a> 提供 · <span class="reset" id="resetSave">清档</span></div>
+  <div>🎮 游戏作者 <a href="https://game.leleleling.site/author?id=9" target="_blank" rel="noopener">Joy</a></div>
+</div>
+<div id="toast"></div><div id="next"></div>
+<div id="win"><div class="box"><h1>🏆 50关全部通关！</h1><p>你征服了10个单元的老六地图。</p><button onclick="location.reload()">再来一次</button></div></div>
+
+<script>
+const LEVELS=[{"unit":1,"stage":1,"name":"第1单元 · 第1关","width":2220,"safe":[{"x":0,"w":470},{"x":470,"w":165},{"x":635,"w":190},{"x":1169,"w":931}],"pits":[{"x":825,"w":344}],"spikes":[{"x":630,"w":82,"h":46,"maxH":115},{"x":997,"w":92,"h":38,"maxH":115}],"door":{"x":2030,"w":58,"h":82},"theme":0},{"unit":1,"stage":2,"name":"第1单元 · 第2关","width":2290,"safe":[{"x":0,"w":470},{"x":470,"w":163},{"x":633,"w":188},{"x":1124,"w":1046}],"pits":[{"x":821,"w":303}],"spikes":[{"x":675,"w":82,"h":38,"maxH":120},{"x":952,"w":92,"h":42,"maxH":120}],"door":{"x":2100,"w":58,"h":82},"theme":0},{"unit":1,"stage":3,"name":"第1单元 · 第3关","width":2360,"safe":[{"x":0,"w":470},{"x":470,"w":161},{"x":631,"w":186},{"x":1218,"w":165},{"x":1383,"w":136},{"x":1740,"w":500}],"pits":[{"x":817,"w":401},{"x":1519,"w":221}],"spikes":[{"x":585,"w":82,"h":42,"maxH":125},{"x":907,"w":92,"h":46,"maxH":125},{"x":1588,"w":72,"h":38,"maxH":125}],"door":{"x":2170,"w":58,"h":82},"theme":0},{"unit":1,"stage":4,"name":"第1单元 · 第4关","width":2430,"safe":[{"x":0,"w":470},{"x":470,"w":159},{"x":629,"w":184},{"x":1303,"w":165},{"x":1468,"w":134},{"x":1735,"w":575}],"pits":[{"x":813,"w":490},{"x":1602,"w":133}],"spikes":[{"x":630,"w":82,"h":46,"maxH":130},{"x":997,"w":92,"h":38,"maxH":130},{"x":1583,"w":72,"h":42,"maxH":130}],"door":{"x":2240,"w":58,"h":82},"theme":0},{"unit":1,"stage":5,"name":"第1单元 · 第5关","width":2500,"safe":[{"x":0,"w":470},{"x":470,"w":157},{"x":627,"w":182},{"x":1253,"w":165},{"x":1418,"w":132},{"x":1550,"w":157},{"x":2097,"w":283}],"pits":[{"x":809,"w":444},{"x":1707,"w":390}],"spikes":[{"x":675,"w":82,"h":38,"maxH":135},{"x":952,"w":92,"h":42,"maxH":135},{"x":1578,"w":72,"h":46,"maxH":135},{"x":1935,"w":82,"h":38,"maxH":135}],"door":{"x":2310,"w":58,"h":82},"theme":0},{"unit":2,"stage":1,"name":"第2单元 · 第1关","width":2340,"safe":[{"x":0,"w":470},{"x":470,"w":187},{"x":657,"w":137},{"x":1302,"w":115},{"x":1417,"w":162},{"x":1694,"w":526}],"pits":[{"x":794,"w":508},{"x":1579,"w":115}],"spikes":[{"x":630,"w":92,"h":38,"maxH":120},{"x":1007,"w":72,"h":42,"maxH":120},{"x":1532,"w":82,"h":46,"maxH":120}],"door":{"x":2150,"w":58,"h":82},"theme":1},{"unit":2,"stage":2,"name":"第2单元 · 第2关","width":2410,"safe":[{"x":0,"w":470},{"x":470,"w":185},{"x":655,"w":135},{"x":1252,"w":115},{"x":1367,"w":160},{"x":1689,"w":601}],"pits":[{"x":790,"w":462},{"x":1527,"w":162}],"spikes":[{"x":675,"w":92,"h":42,"maxH":125},{"x":962,"w":72,"h":46,"maxH":125},{"x":1527,"w":82,"h":38,"maxH":125}],"door":{"x":2220,"w":58,"h":82},"theme":1},{"unit":2,"stage":3,"name":"第2单元 · 第3关","width":2480,"safe":[{"x":0,"w":470},{"x":470,"w":183},{"x":653,"w":133},{"x":1202,"w":115},{"x":1317,"w":158},{"x":1475,"w":183},{"x":1971,"w":389}],"pits":[{"x":786,"w":416},{"x":1658,"w":313}],"spikes":[{"x":585,"w":92,"h":46,"maxH":130},{"x":917,"w":72,"h":38,"maxH":130},{"x":1522,"w":82,"h":42,"maxH":130},{"x":1799,"w":92,"h":46,"maxH":130}],"door":{"x":2290,"w":58,"h":82},"theme":1},{"unit":2,"stage":4,"name":"第2单元 · 第4关","width":2550,"safe":[{"x":0,"w":470},{"x":470,"w":181},{"x":651,"w":131},{"x":1287,"w":115},{"x":1402,"w":156},{"x":1558,"w":181},{"x":2011,"w":419}],"pits":[{"x":782,"w":505},{"x":1739,"w":272}],"spikes":[{"x":630,"w":92,"h":38,"maxH":135},{"x":1007,"w":72,"h":42,"maxH":135},{"x":1517,"w":82,"h":46,"maxH":135},{"x":1839,"w":92,"h":38,"maxH":135}],"door":{"x":2360,"w":58,"h":82},"theme":1},{"unit":2,"stage":5,"name":"第2单元 · 第5关","width":2986,"safe":[{"x":0,"w":470},{"x":470,"w":179},{"x":649,"w":129},{"x":1237,"w":115},{"x":1352,"w":154},{"x":1506,"w":179},{"x":2174,"w":165},{"x":2339,"w":129},{"x":2606,"w":260}],"pits":[{"x":778,"w":459},{"x":1685,"w":489},{"x":2468,"w":138}],"spikes":[{"x":675,"w":92,"h":42,"maxH":140},{"x":962,"w":72,"h":46,"maxH":140},{"x":1512,"w":82,"h":38,"maxH":140},{"x":1879,"w":92,"h":42,"maxH":140},{"x":2454,"w":72,"h":46,"maxH":140}],"door":{"x":2796,"w":58,"h":82},"theme":1},{"unit":3,"stage":1,"name":"第3单元 · 第1关","width":2460,"safe":[{"x":0,"w":470},{"x":470,"w":134},{"x":604,"w":159},{"x":1286,"w":140},{"x":1426,"w":184},{"x":1713,"w":627}],"pits":[{"x":763,"w":523},{"x":1610,"w":103}],"spikes":[{"x":630,"w":72,"h":42,"maxH":125},{"x":987,"w":82,"h":46,"maxH":125},{"x":1541,"w":92,"h":38,"maxH":125}],"door":{"x":2270,"w":58,"h":82},"theme":2},{"unit":3,"stage":2,"name":"第3单元 · 第2关","width":2530,"safe":[{"x":0,"w":470},{"x":470,"w":132},{"x":602,"w":157},{"x":1236,"w":140},{"x":1376,"w":182},{"x":1708,"w":702}],"pits":[{"x":759,"w":477},{"x":1558,"w":150}],"spikes":[{"x":675,"w":72,"h":46,"maxH":130},{"x":942,"w":82,"h":38,"maxH":130},{"x":1536,"w":92,"h":42,"maxH":130}],"door":{"x":2340,"w":58,"h":82},"theme":2},{"unit":3,"stage":3,"name":"第3单元 · 第3关","width":2600,"safe":[{"x":0,"w":470},{"x":470,"w":130},{"x":600,"w":155},{"x":1186,"w":140},{"x":1326,"w":180},{"x":1506,"w":130},{"x":1970,"w":510}],"pits":[{"x":755,"w":431},{"x":1636,"w":334}],"spikes":[{"x":585,"w":72,"h":38,"maxH":135},{"x":897,"w":82,"h":42,"maxH":135},{"x":1531,"w":92,"h":46,"maxH":135},{"x":1818,"w":72,"h":38,"maxH":135}],"door":{"x":2410,"w":58,"h":82},"theme":2},{"unit":3,"stage":4,"name":"第3单元 · 第4关","width":2670,"safe":[{"x":0,"w":470},{"x":470,"w":128},{"x":598,"w":153},{"x":1271,"w":140},{"x":1411,"w":178},{"x":1589,"w":128},{"x":2010,"w":540}],"pits":[{"x":751,"w":520},{"x":1717,"w":293}],"spikes":[{"x":630,"w":72,"h":42,"maxH":140},{"x":987,"w":82,"h":46,"maxH":140},{"x":1526,"w":92,"h":38,"maxH":140},{"x":1858,"w":72,"h":42,"maxH":140}],"door":{"x":2480,"w":58,"h":82},"theme":2},{"unit":3,"stage":5,"name":"第3单元 · 第5关","width":2939,"safe":[{"x":0,"w":470},{"x":470,"w":126},{"x":596,"w":151},{"x":1221,"w":140},{"x":1361,"w":176},{"x":1537,"w":126},{"x":2167,"w":115},{"x":2282,"w":151},{"x":2559,"w":260}],"pits":[{"x":747,"w":474},{"x":1663,"w":504},{"x":2433,"w":126}],"spikes":[{"x":675,"w":72,"h":46,"maxH":145},{"x":942,"w":82,"h":38,"maxH":145},{"x":1521,"w":92,"h":42,"maxH":145},{"x":1898,"w":72,"h":46,"maxH":145},{"x":2397,"w":82,"h":38,"maxH":145}],"door":{"x":2749,"w":58,"h":82},"theme":2},{"unit":4,"stage":1,"name":"第4单元 · 第1关","width":2580,"safe":[{"x":0,"w":470},{"x":470,"w":156},{"x":626,"w":181},{"x":1300,"w":165},{"x":1465,"w":131},{"x":1596,"w":156},{"x":2054,"w":406}],"pits":[{"x":807,"w":493},{"x":1752,"w":302}],"spikes":[{"x":630,"w":82,"h":46,"maxH":130},{"x":997,"w":92,"h":38,"maxH":130},{"x":1580,"w":72,"h":42,"maxH":130},{"x":1892,"w":82,"h":46,"maxH":130}],"door":{"x":2390,"w":58,"h":82},"theme":3},{"unit":4,"stage":2,"name":"第4单元 · 第2关","width":2650,"safe":[{"x":0,"w":470},{"x":470,"w":154},{"x":624,"w":179},{"x":1250,"w":165},{"x":1415,"w":129},{"x":1544,"w":154},{"x":2094,"w":436}],"pits":[{"x":803,"w":447},{"x":1698,"w":396}],"spikes":[{"x":675,"w":82,"h":38,"maxH":135},{"x":952,"w":92,"h":42,"maxH":135},{"x":1575,"w":72,"h":46,"maxH":135},{"x":1932,"w":82,"h":38,"maxH":135}],"door":{"x":2460,"w":58,"h":82},"theme":3},{"unit":4,"stage":3,"name":"第4单元 · 第3关","width":2972,"safe":[{"x":0,"w":470},{"x":470,"w":152},{"x":622,"w":177},{"x":1200,"w":165},{"x":1365,"w":127},{"x":1492,"w":152},{"x":2120,"w":140},{"x":2260,"w":177},{"x":2592,"w":260}],"pits":[{"x":799,"w":401},{"x":1644,"w":476},{"x":2437,"w":155}],"spikes":[{"x":585,"w":82,"h":42,"maxH":140},{"x":907,"w":92,"h":46,"maxH":140},{"x":1570,"w":72,"h":38,"maxH":140},{"x":1837,"w":82,"h":42,"maxH":140},{"x":2420,"w":92,"h":46,"maxH":140}],"door":{"x":2782,"w":58,"h":82},"theme":3},{"unit":4,"stage":4,"name":"第4单元 · 第4关","width":3052,"safe":[{"x":0,"w":470},{"x":470,"w":150},{"x":620,"w":175},{"x":1285,"w":165},{"x":1450,"w":125},{"x":1575,"w":150},{"x":2155,"w":140},{"x":2295,"w":175},{"x":2672,"w":260}],"pits":[{"x":795,"w":490},{"x":1725,"w":430},{"x":2470,"w":202}],"spikes":[{"x":630,"w":82,"h":46,"maxH":145},{"x":997,"w":92,"h":38,"maxH":145},{"x":1565,"w":72,"h":42,"maxH":145},{"x":1877,"w":82,"h":46,"maxH":145},{"x":2500,"w":92,"h":38,"maxH":145}],"door":{"x":2862,"w":58,"h":82},"theme":3},{"unit":4,"stage":5,"name":"第4单元 · 第5关","width":3309,"safe":[{"x":0,"w":470},{"x":470,"w":148},{"x":618,"w":173},{"x":1235,"w":165},{"x":1400,"w":123},{"x":1523,"w":148},{"x":2190,"w":140},{"x":2330,"w":173},{"x":2503,"w":123},{"x":2929,"w":260}],"pits":[{"x":791,"w":444},{"x":1671,"w":519},{"x":2626,"w":303}],"spikes":[{"x":675,"w":82,"h":38,"maxH":150},{"x":952,"w":92,"h":42,"maxH":150},{"x":1560,"w":72,"h":46,"maxH":150},{"x":1917,"w":82,"h":38,"maxH":150},{"x":2445,"w":92,"h":42,"maxH":150},{"x":2777,"w":72,"h":46,"maxH":150}],"door":{"x":3119,"w":58,"h":82},"theme":3},{"unit":5,"stage":1,"name":"第5单元 · 第1关","width":2700,"safe":[{"x":0,"w":470},{"x":470,"w":178},{"x":648,"w":128},{"x":1284,"w":115},{"x":1399,"w":153},{"x":1552,"w":178},{"x":2008,"w":572}],"pits":[{"x":776,"w":508},{"x":1730,"w":278}],"spikes":[{"x":630,"w":92,"h":38,"maxH":135},{"x":1007,"w":72,"h":42,"maxH":135},{"x":1514,"w":82,"h":46,"maxH":135},{"x":1836,"w":92,"h":38,"maxH":135}],"door":{"x":2510,"w":58,"h":82},"theme":4},{"unit":5,"stage":2,"name":"第5单元 · 第2关","width":2770,"safe":[{"x":0,"w":470},{"x":470,"w":176},{"x":646,"w":126},{"x":1234,"w":115},{"x":1349,"w":151},{"x":1500,"w":176},{"x":2048,"w":602}],"pits":[{"x":772,"w":462},{"x":1676,"w":372}],"spikes":[{"x":675,"w":92,"h":42,"maxH":140},{"x":962,"w":72,"h":46,"maxH":140},{"x":1509,"w":82,"h":38,"maxH":140},{"x":1876,"w":92,"h":42,"maxH":140}],"door":{"x":2580,"w":58,"h":82},"theme":4},{"unit":5,"stage":3,"name":"第5单元 · 第3关","width":2925,"safe":[{"x":0,"w":470},{"x":470,"w":174},{"x":644,"w":124},{"x":1184,"w":115},{"x":1299,"w":149},{"x":1448,"w":174},{"x":2068,"w":165},{"x":2233,"w":124},{"x":2545,"w":260}],"pits":[{"x":768,"w":416},{"x":1622,"w":446},{"x":2357,"w":188}],"spikes":[{"x":585,"w":92,"h":46,"maxH":145},{"x":917,"w":72,"h":38,"maxH":145},{"x":1504,"w":82,"h":42,"maxH":145},{"x":1781,"w":92,"h":46,"maxH":145},{"x":2393,"w":72,"h":38,"maxH":145}],"door":{"x":2735,"w":58,"h":82},"theme":4},{"unit":5,"stage":4,"name":"第5单元 · 第4关","width":3005,"safe":[{"x":0,"w":470},{"x":470,"w":172},{"x":642,"w":122},{"x":1269,"w":115},{"x":1384,"w":147},{"x":1531,"w":172},{"x":2103,"w":165},{"x":2268,"w":122},{"x":2625,"w":260}],"pits":[{"x":764,"w":505},{"x":1703,"w":400},{"x":2390,"w":235}],"spikes":[{"x":630,"w":92,"h":38,"maxH":150},{"x":1007,"w":72,"h":42,"maxH":150},{"x":1499,"w":82,"h":46,"maxH":150},{"x":1821,"w":92,"h":38,"maxH":150},{"x":2473,"w":72,"h":42,"maxH":150}],"door":{"x":2815,"w":58,"h":82},"theme":4},{"unit":5,"stage":5,"name":"第5单元 · 第5关","width":3272,"safe":[{"x":0,"w":470},{"x":470,"w":170},{"x":640,"w":120},{"x":1219,"w":115},{"x":1334,"w":145},{"x":1479,"w":170},{"x":2138,"w":165},{"x":2303,"w":120},{"x":2423,"w":145},{"x":2892,"w":260}],"pits":[{"x":760,"w":459},{"x":1649,"w":489},{"x":2568,"w":324}],"spikes":[{"x":675,"w":92,"h":42,"maxH":155},{"x":962,"w":72,"h":46,"maxH":155},{"x":1494,"w":82,"h":38,"maxH":155},{"x":1861,"w":92,"h":42,"maxH":155},{"x":2418,"w":72,"h":46,"maxH":155},{"x":2730,"w":82,"h":38,"maxH":155}],"door":{"x":3082,"w":58,"h":82},"theme":4},{"unit":6,"stage":1,"name":"第6单元 · 第1关","width":2988,"safe":[{"x":0,"w":470},{"x":470,"w":125},{"x":595,"w":150},{"x":1268,"w":140},{"x":1408,"w":175},{"x":1583,"w":125},{"x":2126,"w":115},{"x":2241,"w":150},{"x":2608,"w":260}],"pits":[{"x":745,"w":523},{"x":1708,"w":418},{"x":2391,"w":217}],"spikes":[{"x":630,"w":72,"h":42,"maxH":140},{"x":987,"w":82,"h":46,"maxH":140},{"x":1523,"w":92,"h":38,"maxH":140},{"x":1855,"w":72,"h":42,"maxH":140},{"x":2446,"w":82,"h":46,"maxH":140}],"door":{"x":2798,"w":58,"h":82},"theme":0},{"unit":6,"stage":2,"name":"第6单元 · 第2关","width":2933,"safe":[{"x":0,"w":470},{"x":470,"w":123},{"x":593,"w":148},{"x":1218,"w":140},{"x":1358,"w":173},{"x":1531,"w":123},{"x":2161,"w":115},{"x":2276,"w":148},{"x":2553,"w":260}],"pits":[{"x":741,"w":477},{"x":1654,"w":507},{"x":2424,"w":129}],"spikes":[{"x":675,"w":72,"h":46,"maxH":145},{"x":942,"w":82,"h":38,"maxH":145},{"x":1518,"w":92,"h":42,"maxH":145},{"x":1895,"w":72,"h":46,"maxH":145},{"x":2391,"w":82,"h":38,"maxH":145}],"door":{"x":2743,"w":58,"h":82},"theme":0},{"unit":6,"stage":3,"name":"第6单元 · 第3关","width":3255,"safe":[{"x":0,"w":470},{"x":470,"w":121},{"x":591,"w":146},{"x":1168,"w":140},{"x":1308,"w":171},{"x":1479,"w":121},{"x":2061,"w":115},{"x":2176,"w":146},{"x":2322,"w":171},{"x":2875,"w":260}],"pits":[{"x":737,"w":431},{"x":1600,"w":461},{"x":2493,"w":382}],"spikes":[{"x":585,"w":72,"h":38,"maxH":150},{"x":897,"w":82,"h":42,"maxH":150},{"x":1513,"w":92,"h":46,"maxH":150},{"x":1800,"w":72,"h":38,"maxH":150},{"x":2336,"w":82,"h":42,"maxH":150},{"x":2703,"w":92,"h":46,"maxH":150}],"door":{"x":3065,"w":58,"h":82},"theme":0},{"unit":6,"stage":4,"name":"第6单元 · 第4关","width":3245,"safe":[{"x":0,"w":470},{"x":470,"w":119},{"x":589,"w":144},{"x":1253,"w":140},{"x":1393,"w":169},{"x":1562,"w":119},{"x":2096,"w":115},{"x":2211,"w":144},{"x":2355,"w":169},{"x":2865,"w":260}],"pits":[{"x":733,"w":520},{"x":1681,"w":415},{"x":2524,"w":341}],"spikes":[{"x":630,"w":72,"h":42,"maxH":155},{"x":987,"w":82,"h":46,"maxH":155},{"x":1508,"w":92,"h":38,"maxH":155},{"x":1840,"w":72,"h":42,"maxH":155},{"x":2416,"w":82,"h":46,"maxH":155},{"x":2693,"w":92,"h":38,"maxH":155}],"door":{"x":3055,"w":58,"h":82},"theme":0},{"unit":6,"stage":5,"name":"第6单元 · 第5关","width":3856,"safe":[{"x":0,"w":470},{"x":470,"w":117},{"x":587,"w":142},{"x":1203,"w":140},{"x":1343,"w":167},{"x":1510,"w":117},{"x":2131,"w":115},{"x":2246,"w":142},{"x":2388,"w":167},{"x":2954,"w":165},{"x":3119,"w":117},{"x":3476,"w":260}],"pits":[{"x":729,"w":474},{"x":1627,"w":504},{"x":2555,"w":399},{"x":3236,"w":240}],"spikes":[{"x":675,"w":72,"h":46,"maxH":160},{"x":942,"w":82,"h":38,"maxH":160},{"x":1503,"w":92,"h":42,"maxH":160},{"x":1880,"w":72,"h":46,"maxH":160},{"x":2361,"w":82,"h":38,"maxH":160},{"x":2683,"w":92,"h":42,"maxH":160},{"x":3324,"w":72,"h":46,"maxH":160}],"door":{"x":3666,"w":58,"h":82},"theme":0},{"unit":7,"stage":1,"name":"第7单元 · 第1关","width":3046,"safe":[{"x":0,"w":470},{"x":470,"w":147},{"x":617,"w":172},{"x":1282,"w":165},{"x":1447,"w":122},{"x":1569,"w":147},{"x":2149,"w":140},{"x":2289,"w":172},{"x":2666,"w":260}],"pits":[{"x":789,"w":493},{"x":1716,"w":433},{"x":2461,"w":205}],"spikes":[{"x":630,"w":82,"h":46,"maxH":145},{"x":997,"w":92,"h":38,"maxH":145},{"x":1562,"w":72,"h":42,"maxH":145},{"x":1874,"w":82,"h":46,"maxH":145},{"x":2494,"w":92,"h":38,"maxH":145}],"door":{"x":2856,"w":58,"h":82},"theme":1},{"unit":7,"stage":2,"name":"第7单元 · 第2关","width":3010,"safe":[{"x":0,"w":470},{"x":470,"w":145},{"x":615,"w":170},{"x":1232,"w":165},{"x":1397,"w":120},{"x":1517,"w":145},{"x":2184,"w":140},{"x":2324,"w":170},{"x":2611,"w":279}],"pits":[{"x":785,"w":447},{"x":1662,"w":522},{"x":2494,"w":117}],"spikes":[{"x":675,"w":82,"h":38,"maxH":150},{"x":952,"w":92,"h":42,"maxH":150},{"x":1557,"w":72,"h":46,"maxH":150},{"x":1914,"w":82,"h":38,"maxH":150},{"x":2439,"w":92,"h":42,"maxH":150}],"door":{"x":2820,"w":58,"h":82},"theme":1},{"unit":7,"stage":3,"name":"第7单元 · 第3关","width":3293,"safe":[{"x":0,"w":470},{"x":470,"w":143},{"x":613,"w":168},{"x":1182,"w":165},{"x":1347,"w":118},{"x":1465,"w":143},{"x":2084,"w":140},{"x":2224,"w":168},{"x":2392,"w":118},{"x":2913,"w":260}],"pits":[{"x":781,"w":401},{"x":1608,"w":476},{"x":2510,"w":403}],"spikes":[{"x":585,"w":82,"h":42,"maxH":155},{"x":907,"w":92,"h":46,"maxH":155},{"x":1552,"w":72,"h":38,"maxH":155},{"x":1819,"w":82,"h":42,"maxH":155},{"x":2384,"w":92,"h":46,"maxH":155},{"x":2761,"w":72,"h":38,"maxH":155}],"door":{"x":3103,"w":58,"h":82},"theme":1},{"unit":7,"stage":4,"name":"第7单元 · 第4关","width":3283,"safe":[{"x":0,"w":470},{"x":470,"w":141},{"x":611,"w":166},{"x":1267,"w":165},{"x":1432,"w":116},{"x":1548,"w":141},{"x":2119,"w":140},{"x":2259,"w":166},{"x":2425,"w":116},{"x":2903,"w":260}],"pits":[{"x":777,"w":490},{"x":1689,"w":430},{"x":2541,"w":362}],"spikes":[{"x":630,"w":82,"h":46,"maxH":160},{"x":997,"w":92,"h":38,"maxH":160},{"x":1547,"w":72,"h":42,"maxH":160},{"x":1859,"w":82,"h":46,"maxH":160},{"x":2464,"w":92,"h":38,"maxH":160},{"x":2751,"w":72,"h":42,"maxH":160}],"door":{"x":3093,"w":58,"h":82},"theme":1},{"unit":7,"stage":5,"name":"第7单元 · 第5关","width":3848,"safe":[{"x":0,"w":470},{"x":470,"w":139},{"x":609,"w":164},{"x":1217,"w":165},{"x":1382,"w":114},{"x":1496,"w":139},{"x":2154,"w":140},{"x":2294,"w":164},{"x":2458,"w":114},{"x":2986,"w":115},{"x":3101,"w":139},{"x":3468,"w":260}],"pits":[{"x":773,"w":444},{"x":1635,"w":519},{"x":2572,"w":414},{"x":3240,"w":228}],"spikes":[{"x":675,"w":82,"h":38,"maxH":165},{"x":952,"w":92,"h":42,"maxH":165},{"x":1542,"w":72,"h":46,"maxH":165},{"x":1899,"w":82,"h":38,"maxH":165},{"x":2409,"w":92,"h":42,"maxH":165},{"x":2741,"w":72,"h":46,"maxH":165},{"x":3306,"w":82,"h":38,"maxH":165}],"door":{"x":3658,"w":58,"h":82},"theme":1},{"unit":8,"stage":1,"name":"第8单元 · 第1关","width":3276,"safe":[{"x":0,"w":470},{"x":470,"w":169},{"x":639,"w":119},{"x":1266,"w":115},{"x":1381,"w":144},{"x":1525,"w":169},{"x":2097,"w":165},{"x":2262,"w":119},{"x":2381,"w":144},{"x":2896,"w":260}],"pits":[{"x":758,"w":508},{"x":1694,"w":403},{"x":2525,"w":371}],"spikes":[{"x":630,"w":92,"h":38,"maxH":150},{"x":1007,"w":72,"h":42,"maxH":150},{"x":1496,"w":82,"h":46,"maxH":150},{"x":1818,"w":92,"h":38,"maxH":150},{"x":2467,"w":72,"h":42,"maxH":150},{"x":2734,"w":82,"h":46,"maxH":150}],"door":{"x":3086,"w":58,"h":82},"theme":2},{"unit":8,"stage":2,"name":"第8单元 · 第2关","width":3266,"safe":[{"x":0,"w":470},{"x":470,"w":167},{"x":637,"w":117},{"x":1216,"w":115},{"x":1331,"w":142},{"x":1473,"w":167},{"x":2132,"w":165},{"x":2297,"w":117},{"x":2414,"w":142},{"x":2886,"w":260}],"pits":[{"x":754,"w":462},{"x":1640,"w":492},{"x":2556,"w":330}],"spikes":[{"x":675,"w":92,"h":42,"maxH":155},{"x":962,"w":72,"h":46,"maxH":155},{"x":1491,"w":82,"h":38,"maxH":155},{"x":1858,"w":92,"h":42,"maxH":155},{"x":2412,"w":72,"h":46,"maxH":155},{"x":2724,"w":82,"h":38,"maxH":155}],"door":{"x":3076,"w":58,"h":82},"theme":2},{"unit":8,"stage":3,"name":"第8单元 · 第3关","width":3780,"safe":[{"x":0,"w":470},{"x":470,"w":165},{"x":635,"w":115},{"x":1166,"w":115},{"x":1281,"w":140},{"x":1421,"w":165},{"x":2032,"w":165},{"x":2197,"w":115},{"x":2312,"w":140},{"x":2973,"w":140},{"x":3113,"w":165},{"x":3400,"w":260}],"pits":[{"x":750,"w":416},{"x":1586,"w":446},{"x":2452,"w":521},{"x":3278,"w":122}],"spikes":[{"x":585,"w":92,"h":46,"maxH":160},{"x":917,"w":72,"h":38,"maxH":160},{"x":1486,"w":82,"h":42,"maxH":160},{"x":1763,"w":92,"h":46,"maxH":160},{"x":2357,"w":72,"h":38,"maxH":160},{"x":2714,"w":82,"h":42,"maxH":160},{"x":3228,"w":92,"h":46,"maxH":160}],"door":{"x":3590,"w":58,"h":82},"theme":2},{"unit":8,"stage":4,"name":"第8单元 · 第4关","width":3810,"safe":[{"x":0,"w":470},{"x":470,"w":163},{"x":633,"w":113},{"x":1251,"w":115},{"x":1366,"w":138},{"x":1504,"w":163},{"x":2067,"w":165},{"x":2232,"w":113},{"x":2345,"w":138},{"x":2958,"w":140},{"x":3098,"w":163},{"x":3430,"w":260}],"pits":[{"x":746,"w":505},{"x":1667,"w":400},{"x":2483,"w":475},{"x":3261,"w":169}],"spikes":[{"x":630,"w":92,"h":38,"maxH":165},{"x":1007,"w":72,"h":42,"maxH":165},{"x":1481,"w":82,"h":46,"maxH":165},{"x":1803,"w":92,"h":38,"maxH":165},{"x":2437,"w":72,"h":42,"maxH":165},{"x":2704,"w":82,"h":46,"maxH":165},{"x":3258,"w":92,"h":38,"maxH":165}],"door":{"x":3620,"w":58,"h":82},"theme":2},{"unit":8,"stage":5,"name":"第8单元 · 第5关","width":4107,"safe":[{"x":0,"w":470},{"x":470,"w":161},{"x":631,"w":111},{"x":1201,"w":115},{"x":1316,"w":136},{"x":1452,"w":161},{"x":2102,"w":165},{"x":2267,"w":111},{"x":2378,"w":136},{"x":2943,"w":140},{"x":3083,"w":161},{"x":3244,"w":111},{"x":3727,"w":260}],"pits":[{"x":742,"w":459},{"x":1613,"w":489},{"x":2514,"w":429},{"x":3355,"w":372}],"spikes":[{"x":675,"w":92,"h":42,"maxH":170},{"x":962,"w":72,"h":46,"maxH":170},{"x":1476,"w":82,"h":38,"maxH":170},{"x":1843,"w":92,"h":42,"maxH":170},{"x":2382,"w":72,"h":46,"maxH":170},{"x":2694,"w":82,"h":38,"maxH":170},{"x":3288,"w":92,"h":42,"maxH":170},{"x":3575,"w":72,"h":46,"maxH":170}],"door":{"x":3917,"w":58,"h":82},"theme":2},{"unit":9,"stage":1,"name":"第9单元 · 第1关","width":3239,"safe":[{"x":0,"w":470},{"x":470,"w":116},{"x":586,"w":141},{"x":1250,"w":140},{"x":1390,"w":166},{"x":1556,"w":116},{"x":2090,"w":115},{"x":2205,"w":141},{"x":2346,"w":166},{"x":2859,"w":260}],"pits":[{"x":727,"w":523},{"x":1672,"w":418},{"x":2512,"w":347}],"spikes":[{"x":630,"w":72,"h":42,"maxH":155},{"x":987,"w":82,"h":46,"maxH":155},{"x":1505,"w":92,"h":38,"maxH":155},{"x":1837,"w":72,"h":42,"maxH":155},{"x":2410,"w":82,"h":46,"maxH":155},{"x":2687,"w":92,"h":38,"maxH":155}],"door":{"x":3049,"w":58,"h":82},"theme":3},{"unit":9,"stage":2,"name":"第9单元 · 第2关","width":3250,"safe":[{"x":0,"w":470},{"x":470,"w":114},{"x":584,"w":139},{"x":1200,"w":140},{"x":1340,"w":164},{"x":1504,"w":114},{"x":2125,"w":115},{"x":2240,"w":139},{"x":2379,"w":164},{"x":2849,"w":281}],"pits":[{"x":723,"w":477},{"x":1618,"w":507},{"x":2543,"w":306}],"spikes":[{"x":675,"w":72,"h":46,"maxH":160},{"x":942,"w":82,"h":38,"maxH":160},{"x":1500,"w":92,"h":42,"maxH":160},{"x":1877,"w":72,"h":46,"maxH":160},{"x":2355,"w":82,"h":38,"maxH":160},{"x":2677,"w":92,"h":42,"maxH":160}],"door":{"x":3060,"w":58,"h":82},"theme":3},{"unit":9,"stage":3,"name":"第9单元 · 第3关","width":3742,"safe":[{"x":0,"w":470},{"x":470,"w":112},{"x":582,"w":137},{"x":1150,"w":140},{"x":1290,"w":162},{"x":1452,"w":112},{"x":2025,"w":115},{"x":2140,"w":137},{"x":2277,"w":162},{"x":2930,"w":165},{"x":3095,"w":112},{"x":3362,"w":260}],"pits":[{"x":719,"w":431},{"x":1564,"w":461},{"x":2439,"w":491},{"x":3207,"w":155}],"spikes":[{"x":585,"w":72,"h":38,"maxH":165},{"x":897,"w":82,"h":42,"maxH":165},{"x":1495,"w":92,"h":46,"maxH":165},{"x":1782,"w":72,"h":38,"maxH":165},{"x":2300,"w":82,"h":42,"maxH":165},{"x":2667,"w":92,"h":46,"maxH":165},{"x":3210,"w":72,"h":38,"maxH":165}],"door":{"x":3552,"w":58,"h":82},"theme":3},{"unit":9,"stage":4,"name":"第9单元 · 第4关","width":3772,"safe":[{"x":0,"w":470},{"x":470,"w":110},{"x":580,"w":135},{"x":1235,"w":140},{"x":1375,"w":160},{"x":1535,"w":110},{"x":2060,"w":115},{"x":2175,"w":135},{"x":2310,"w":160},{"x":2915,"w":165},{"x":3080,"w":110},{"x":3392,"w":260}],"pits":[{"x":715,"w":520},{"x":1645,"w":415},{"x":2470,"w":445},{"x":3190,"w":202}],"spikes":[{"x":630,"w":72,"h":42,"maxH":170},{"x":987,"w":82,"h":46,"maxH":170},{"x":1490,"w":92,"h":38,"maxH":170},{"x":1822,"w":72,"h":42,"maxH":170},{"x":2380,"w":82,"h":46,"maxH":170},{"x":2657,"w":92,"h":38,"maxH":170},{"x":3240,"w":72,"h":42,"maxH":170}],"door":{"x":3582,"w":58,"h":82},"theme":3},{"unit":9,"stage":5,"name":"第9单元 · 第5关","width":4079,"safe":[{"x":0,"w":470},{"x":470,"w":110},{"x":580,"w":133},{"x":1185,"w":140},{"x":1325,"w":158},{"x":1483,"w":110},{"x":2095,"w":115},{"x":2210,"w":133},{"x":2343,"w":158},{"x":2900,"w":165},{"x":3065,"w":110},{"x":3175,"w":133},{"x":3699,"w":260}],"pits":[{"x":713,"w":472},{"x":1593,"w":502},{"x":2501,"w":399},{"x":3308,"w":391}],"spikes":[{"x":675,"w":72,"h":46,"maxH":175},{"x":942,"w":82,"h":38,"maxH":175},{"x":1485,"w":92,"h":42,"maxH":175},{"x":1862,"w":72,"h":46,"maxH":175},{"x":2325,"w":82,"h":38,"maxH":175},{"x":2647,"w":92,"h":42,"maxH":175},{"x":3270,"w":72,"h":46,"maxH":175},{"x":3537,"w":82,"h":38,"maxH":175}],"door":{"x":3889,"w":58,"h":82},"theme":3},{"unit":10,"stage":1,"name":"第10单元 · 第1关","width":3809,"safe":[{"x":0,"w":470},{"x":470,"w":138},{"x":608,"w":163},{"x":1264,"w":165},{"x":1429,"w":113},{"x":1542,"w":138},{"x":2113,"w":140},{"x":2253,"w":163},{"x":2416,"w":113},{"x":2992,"w":115},{"x":3107,"w":138},{"x":3429,"w":260}],"pits":[{"x":771,"w":493},{"x":1680,"w":433},{"x":2529,"w":463},{"x":3245,"w":184}],"spikes":[{"x":630,"w":82,"h":46,"maxH":160},{"x":997,"w":92,"h":38,"maxH":160},{"x":1544,"w":72,"h":42,"maxH":160},{"x":1856,"w":82,"h":46,"maxH":160},{"x":2458,"w":92,"h":38,"maxH":160},{"x":2745,"w":72,"h":42,"maxH":160},{"x":3267,"w":82,"h":46,"maxH":160}],"door":{"x":3619,"w":58,"h":82},"theme":4},{"unit":10,"stage":2,"name":"第10单元 · 第2关","width":3839,"safe":[{"x":0,"w":470},{"x":470,"w":136},{"x":606,"w":161},{"x":1214,"w":165},{"x":1379,"w":111},{"x":1490,"w":136},{"x":2148,"w":140},{"x":2288,"w":161},{"x":2449,"w":111},{"x":2977,"w":115},{"x":3092,"w":136},{"x":3459,"w":260}],"pits":[{"x":767,"w":447},{"x":1626,"w":522},{"x":2560,"w":417},{"x":3228,"w":231}],"spikes":[{"x":675,"w":82,"h":38,"maxH":165},{"x":952,"w":92,"h":42,"maxH":165},{"x":1539,"w":72,"h":46,"maxH":165},{"x":1896,"w":82,"h":38,"maxH":165},{"x":2403,"w":92,"h":42,"maxH":165},{"x":2735,"w":72,"h":46,"maxH":165},{"x":3297,"w":82,"h":38,"maxH":165}],"door":{"x":3649,"w":58,"h":82},"theme":4},{"unit":10,"stage":3,"name":"第10单元 · 第3关","width":4066,"safe":[{"x":0,"w":470},{"x":470,"w":134},{"x":604,"w":159},{"x":1164,"w":165},{"x":1329,"w":110},{"x":1439,"w":134},{"x":2048,"w":140},{"x":2188,"w":159},{"x":2347,"w":110},{"x":2962,"w":115},{"x":3077,"w":134},{"x":3211,"w":159},{"x":3686,"w":260}],"pits":[{"x":763,"w":401},{"x":1573,"w":475},{"x":2457,"w":505},{"x":3370,"w":316}],"spikes":[{"x":585,"w":82,"h":42,"maxH":170},{"x":907,"w":92,"h":46,"maxH":170},{"x":1534,"w":72,"h":38,"maxH":170},{"x":1801,"w":82,"h":42,"maxH":170},{"x":2348,"w":92,"h":46,"maxH":170},{"x":2725,"w":72,"h":38,"maxH":170},{"x":3192,"w":82,"h":42,"maxH":170},{"x":3514,"w":92,"h":46,"maxH":170}],"door":{"x":3876,"w":58,"h":82},"theme":4},{"unit":10,"stage":4,"name":"第10单元 · 第4关","width":4141,"safe":[{"x":0,"w":470},{"x":470,"w":132},{"x":602,"w":157},{"x":1249,"w":165},{"x":1414,"w":110},{"x":1524,"w":132},{"x":2083,"w":140},{"x":2223,"w":157},{"x":2380,"w":110},{"x":2947,"w":115},{"x":3062,"w":132},{"x":3194,"w":157},{"x":3761,"w":260}],"pits":[{"x":759,"w":490},{"x":1656,"w":427},{"x":2490,"w":457},{"x":3351,"w":410}],"spikes":[{"x":630,"w":82,"h":46,"maxH":175},{"x":997,"w":92,"h":38,"maxH":175},{"x":1529,"w":72,"h":42,"maxH":175},{"x":1841,"w":82,"h":46,"maxH":175},{"x":2428,"w":92,"h":38,"maxH":175},{"x":2715,"w":72,"h":42,"maxH":175},{"x":3222,"w":82,"h":46,"maxH":175},{"x":3589,"w":92,"h":38,"maxH":175}],"door":{"x":3951,"w":58,"h":82},"theme":4},{"unit":10,"stage":5,"name":"第10单元 · 第5关","width":4081,"safe":[{"x":0,"w":470},{"x":470,"w":130},{"x":600,"w":155},{"x":1199,"w":165},{"x":1364,"w":110},{"x":1474,"w":130},{"x":2118,"w":140},{"x":2258,"w":155},{"x":2413,"w":110},{"x":2932,"w":115},{"x":3047,"w":130},{"x":3177,"w":155},{"x":3701,"w":260}],"pits":[{"x":755,"w":444},{"x":1604,"w":514},{"x":2523,"w":409},{"x":3332,"w":369}],"spikes":[{"x":675,"w":82,"h":38,"maxH":175},{"x":952,"w":92,"h":42,"maxH":175},{"x":1524,"w":72,"h":46,"maxH":175},{"x":1881,"w":82,"h":38,"maxH":175},{"x":2373,"w":92,"h":42,"maxH":175},{"x":2705,"w":72,"h":46,"maxH":175},{"x":3252,"w":82,"h":38,"maxH":175},{"x":3529,"w":92,"h":42,"maxH":175}],"door":{"x":3891,"w":58,"h":82},"theme":4}];
+const c=document.getElementById("game"),ctx=c.getContext("2d");
+let W=innerWidth,H=innerHeight,DPR=1;
+function resize(){DPR=Math.max(1,devicePixelRatio||1);W=innerWidth;H=innerHeight;c.width=W*DPR;c.height=H*DPR;c.style.width=W+"px";c.style.height=H+"px";ctx.setTransform(DPR,0,0,DPR,0,0)}
+addEventListener("resize",resize);resize();
+
+const keys=new Set();
+addEventListener("keydown",e=>{keys.add(e.key.toLowerCase());if([" ","arrowleft","arrowright","arrowup"].includes(e.key.toLowerCase()))e.preventDefault()});
+addEventListener("keyup",e=>keys.delete(e.key.toLowerCase()));
+
+const GROUND=440;
+const p={x:90,y:GROUND-48,w:32,h:48,vx:0,vy:0,grounded:true,jumps:0};
+let idx=0,L=LEVELS[0],deaths=0,camera=0,shake=0,red=0,won=false;
+
+/* ====== 存档（由「了了了游」提供） ====== */
+const SAVE_KEY="laoliu_map_save_v1";
+function saveProgress(){
+  try{localStorage.setItem(SAVE_KEY,JSON.stringify({idx,deaths,won}));}catch(e){}
+}
+function loadProgress(){
+  try{
+    const raw=localStorage.getItem(SAVE_KEY);
+    if(!raw)return null;
+    const d=JSON.parse(raw);
+    if(d&&typeof d.idx==="number"&&d.idx>=0&&d.idx<LEVELS.length)return d;
+  }catch(e){}
+  return null;
+}
+function clearProgress(){try{localStorage.removeItem(SAVE_KEY);}catch(e){}}
+
+function cloneLevel(src){
+ return JSON.parse(JSON.stringify(src));
+}
+function loadLevel(n,show=true){
+ idx=n; L=cloneLevel(LEVELS[idx]);
+ p.x=90;p.y=GROUND-p.h;p.vx=0;p.vy=0;p.grounded=true;p.jumps=0;camera=0;
+ if(show){
+   const el=document.getElementById("next");
+   el.textContent=(idx===0?"🚪 第一关开始":`🚪 ${L.name}`);
+   el.classList.remove("show");void el.offsetWidth;el.classList.add("show");
+ }
+ document.getElementById("levelName").textContent=L.name;
+ saveProgress();
+}
+function hit(a,b){return a.x<b.x+b.w&&a.x+a.w>b.x&&a.y<b.y+b.h&&a.y+a.h>b.y}
+
+function die(){
+ deaths++;document.getElementById("deaths").textContent=deaths;
+ red=1;shake=18;
+ const words=["哈哈！中招了！","老六机关启动！","就这？再来一次！","嘿嘿，被阴到了！","再来一次试试！"];
+ const t=document.getElementById("toast");t.textContent=words[(deaths-1)%words.length];
+ t.classList.remove("show");void t.offsetWidth;t.classList.add("show");
+ for(const s of L.spikes){s.armed=false;s.active=false;s.delay=0;}
+ p.x=90;p.y=GROUND-p.h;p.vx=0;p.vy=0;p.grounded=true;p.jumps=0;p._jumpHeld=false;camera=0;
+ saveProgress();
+}
+
+function update(dt){
+ if(won)return;
+ const left=keys.has("a")||keys.has("arrowleft"),right=keys.has("d")||keys.has("arrowright");
+ if(left)p.vx-=.65;if(right)p.vx+=.65;if(!left&&!right)p.vx*=.78;
+ p.vx=Math.max(-6,Math.min(6,p.vx));
+ const jump=keys.has("w")||keys.has("arrowup")||keys.has(" ");
+ if(jump&&!p._jumpHeld){
+   if(p.grounded){
+     p.vy=-12.5;
+     p.grounded=false;
+     p.jumps=1;
+   }else if(p.jumps<2){
+     p.vy=-11.5;
+     p.jumps=2;
+   }
+ }
+ p._jumpHeld=jump;
+
+ const oldBottom=p.y+p.h;
+ p.vy+=.55;p.x+=p.vx;p.y+=p.vy;p.grounded=false;
+
+ for(const s of L.safe){
+   const overlap=p.x+p.w>s.x&&p.x<s.x+s.w;
+   const crossed=oldBottom<=GROUND&&p.y+p.h>=GROUND;
+   if(overlap&&crossed&&p.vy>=0){
+     p.y=GROUND-p.h;p.vy=0;p.grounded=true;p.jumps=0;
+   }
+ }
+
+ for(const s of L.spikes){
+   if(!s.armed&&p.x+p.w>s.x&&p.x<s.x+s.w&&p.y+p.h>=GROUND-3){
+     s.armed=true;s.delay=.10;
+   }
+   if(s.armed&&!s.active){s.delay-=dt;if(s.delay<=0)s.active=true}
+
+   const baseBox={x:s.x+10,y:GROUND-s.h,w:s.w-20,h:s.h};
+   if(hit(p,baseBox)){die();return}
+
+   if(s.active){
+     const fullBox={x:s.x+10,y:GROUND-s.maxH,w:s.w-20,h:s.maxH};
+     if(hit(p,fullBox)){die();return}
+   }
+ }
+
+ if(p.y>GROUND+120){die();return}
+
+ p.x=Math.max(0,Math.min(L.width-p.w,p.x));
+
+ const door={x:L.door.x,y:GROUND-L.door.h,w:L.door.w,h:L.door.h};
+ if(hit(p,door)){
+   if(idx+1<LEVELS.length){loadLevel(idx+1,true);return}
+   won=true;document.getElementById("win").style.display="grid";
+   clearProgress();
+ }
+
+ camera+=(p.x-W*.35-camera)*.08;
+ camera=Math.max(0,Math.min(Math.max(0,L.width-W),camera));
+ shake*=.86;red*=.9;
+}
+
+function draw(){
+ ctx.save();
+ if(shake>0)ctx.translate((Math.random()-.5)*shake,(Math.random()-.5)*shake);
+
+ const theme=L.theme;
+ const sky=ctx.createLinearGradient(0,0,0,H);
+ const palettes=[
+  ["#75d5ff","#eefaff"],["#a99bff","#ffe4c4"],["#ffd26e","#ffe8a7"],
+  ["#76e0b2","#e7fff3"],["#ff8fa3","#fff0f4"]
+ ];
+ sky.addColorStop(0,palettes[theme][0]);sky.addColorStop(1,palettes[theme][1]);
+ ctx.fillStyle=sky;ctx.fillRect(0,0,W,H);
+
+ ctx.save();ctx.translate(-camera,0);
+ ctx.fillStyle=["#78b77d","#8c76b5","#c69d55","#63a883","#c56e83"][theme];
+ for(let x=-100;x<L.width+300;x+=230){ctx.beginPath();ctx.arc(x,GROUND+20,145,Math.PI,0);ctx.fill()}
+
+ for(const s of L.safe){
+   ctx.fillStyle="#4b5563";ctx.fillRect(s.x,GROUND,s.w,80);
+   ctx.fillStyle=["#70b34e","#82b34f","#c9a84d","#64aa72","#c56f76"][theme];
+   ctx.fillRect(s.x,GROUND,s.w,10);
+ }
+
+ for(const pit of L.pits){
+   ctx.fillStyle="#20242d";ctx.fillRect(pit.x,GROUND,pit.w,250);
+   ctx.fillStyle="#10131a";ctx.fillRect(pit.x+8,GROUND+8,Math.max(0,pit.w-16),220);
+ }
+
+ for(const s of L.spikes){
+   const h=s.active?s.maxH:s.h;
+   const count=7;ctx.fillStyle="#edf2f7";
+   for(let i=0;i<count;i++){
+     const x=s.x+i*s.w/count,b=s.w/count;
+     ctx.beginPath();ctx.moveTo(x,GROUND);ctx.lineTo(x+b/2,GROUND-h);ctx.lineTo(x+b,GROUND);ctx.closePath();ctx.fill();
+     ctx.strokeStyle="#77828e";ctx.stroke();
+   }
+ }
+
+ ctx.fillStyle="#ffca28";ctx.fillRect(Math.max(10,p.x-130),350,135,52);
+ ctx.fillStyle="#222";ctx.font="bold 18px Arial";
+ ctx.fillText("二段跳 · 碰到才死",Math.max(18,p.x-122),382);
+
+ ctx.fillStyle="#6b4226";ctx.fillRect(L.door.x,GROUND-L.door.h,L.door.w,L.door.h);
+ ctx.fillStyle="#ffd75a";ctx.beginPath();ctx.arc(L.door.x+45,GROUND-L.door.h+43,5,0,Math.PI*2);ctx.fill();
+ ctx.fillStyle="#fff";ctx.font="bold 18px Arial";ctx.fillText("下一关",L.door.x-2,GROUND-L.door.h-10);
+
+ ctx.fillStyle=red>.05?"#ff2b2b":"#2468d8";ctx.fillRect(p.x,p.y,p.w,p.h);
+ ctx.fillStyle="#ffd2ad";ctx.beginPath();ctx.arc(p.x+16,p.y+12,11,0,Math.PI*2);ctx.fill();
+ ctx.fillStyle="#111";ctx.fillRect(p.x+8,p.y+9,4,4);ctx.fillRect(p.x+21,p.y+9,4,4);
+
+ ctx.restore();ctx.restore();
+
+ if(red>.02){ctx.fillStyle="rgba(255,0,0,"+Math.min(.30,red*.30)+")";ctx.fillRect(0,0,W,H)}
+}
+
+let last=performance.now();
+function loop(now){const dt=Math.min(.033,(now-last)/1000);last=now;update(dt);draw();requestAnimationFrame(loop)}
+
+/* 启动：优先读存档 */
+const _saved=loadProgress();
+if(_saved&&!_saved.won){
+  deaths=_saved.deaths||0;
+  document.getElementById("deaths").textContent=deaths;
+  loadLevel(_saved.idx,true);
+}else{
+  loadLevel(0,false);
+}
+
+/* 清档按钮 */
+document.getElementById("resetSave").addEventListener("click",e=>{
+  e.preventDefault();
+  if(confirm("确定清除存档吗？将从第 1 关重新开始。")){
+    clearProgress();
+    location.reload();
+  }
+});
+
+loop(last);
+</script>
+<!-- 全站统一组件：脚本 -->
+<script src="https://game.leleleling.site/common.js" defer></script>
+</body>
+<!-- ✅ 审核通过 · 了了了游游戏守则 v4.0.1 · 适龄建议 6+ · 审核日期 2026-11-11 -->
+</html>
